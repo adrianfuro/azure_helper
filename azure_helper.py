@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+"""
+Tool created by Furo Adrian-Gheorghe
+                Tamasila Yasmina
+"""
 
 import sys, os
 from datetime import datetime
@@ -32,7 +36,7 @@ class main_parser:
                                             action="store_true")
         self.parser.add_argument("-r", "--recom", help="List security recommendations in an output file.",\
                                             action="store_true")
-        self.parser.add_argument("output", type=str, help="Specify the output file type")
+        self.parser.add_argument("output", nargs="?", type=str, default="json", help="Specify the output file type")
         self.args = self.parser.parse_args()
 
 class azure_defender:
@@ -51,27 +55,46 @@ class azure_defender:
     def list_subs(self):
         if os.path.isdir("Subscriptions") == False:
             os.mkdir("Subscriptions")
-        
-        subprocess.check_output([f'az account list --output {main_parser().args.output} > Subscriptions/subscriptions_{self.date}.{main_parser().args.output}'], shell=True)
-        print(f"{bcolors.OKGREEN}\nOK: Wrote subs to file.\n")
+
+        if main_parser().args.output == "table":
+            subprocess.check_output([f'az account list --output {main_parser().args.output} > Subscriptions/subscriptions_{self.date}.tsv'], shell=True)
+            print(f"{bcolors.OKGREEN}\nOK: Wrote subs to file.\n")
+            
+        elif main_parser().args.output == "json" or main_parser().args.output == "yaml" or main_parser().args.output == "tsv":
+            subprocess.check_output([f'az account list --output {main_parser().args.output} > Subscriptions/subscriptions_{self.date}.{main_parser().args.output}'], shell=True)
+            print(f"{bcolors.OKGREEN}\nOK: Wrote subs to file.\n")
+        else:
+            print(f"{bcolors.FAIL}{bcolors.BOLD}INVALID FORMAT")
+
 
     def list_alerts(self):
         if os.path.isdir("Alerts") == False:
             os.mkdir("Alerts")
 
-        subprocess.check_output([f'az security alert list --output {main_parser().args.output} > Alerts/alerts_{self.date}.{main_parser().args.output}'], shell=True)
-        print(f"{bcolors.OKGREEN}\nOK: Listed the security alerts to file.\n")
+        if main_parser().args.output == "table":
+            subprocess.check_output([f'az security alert list --output {main_parser().args.output} > Alerts/alerts_{self.date}.tsv'], shell=True)
+            print(f"{bcolors.OKGREEN}Wrote alerts to file")
+
+        elif main_parser().args.output == "json" or main_parser().args.output == "yaml" or main_parser().args.output == "tsv":
+            subprocess.check_output([f'az security alert list --output {main_parser().args.output} > Alerts/alerts_{self.date}.{main_parser().args.output}'], shell=True)
+            print(f"{bcolors.OKGREEN}\nOK: Listed the security alerts to file.\n")
+        else:
+            print(f"{bcolors.FAIL}{bcolors.BOLD}INVALID FORMAT")
 
     def list_recommendations(self):
         if os.path.isdir("Recommendations") == False:
             os.mkdir("Recommendations")
 
-        try:
+        if main_parser().args.output == "table":
+            subprocess.check_output([f"az security assessment list --output {main_parser().args.output} > Recommendations/recommendations_{self.date}.tsv"], shell=True)
+            print(f"{bcolors.OKCYAN}\nOK: Listed the security recommendations on each subscription.\n")
+
+        elif main_parser().args.output == "json" or main_parser().args.output == "yaml" or main_parser().args.output == "tsv":
             subprocess.check_output([f"az security assessment list --output {main_parser().args.output} > Recommendations/recommendations_{self.date}.{main_parser().args.output}"], shell=True)
             print(f"{bcolors.OKCYAN}\nOK: Listed the security recommendations on each subscription.\n")
-        except subprocess.CalledProcessError:
-            print(f"{bcolors.FAIL}{bcolors.BOLD}Invalid output format")
-        
+        else:
+            print(f"{bcolors.FAIL}{bcolors.BOLD}INVALID FORMAT")
+ 
 
 def main():
     execute = azure_defender()
