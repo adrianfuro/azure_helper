@@ -6,6 +6,7 @@ from azure.cli.core import get_default_cli
 import subprocess
 import argparse
 import pandas as pd
+# import parser
 
 class bcolors:
     HEADER = '\033[95m'
@@ -17,6 +18,22 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+class main_parser:
+    def __init__(self):
+        
+        # Arguments for usage and options
+        self.parser = argparse.ArgumentParser(description="Azure CLI Helper", add_help=True)
+        self.parser.add_argument("-l", "--login", help="Login into a Microsoft Azure Account",\
+                                            action="store_true")
+        self.parser.add_argument("-s", "--subs", help="List the subscriptions of the Azure Account as a tsv file",\
+                                            action="store_true")
+        self.parser.add_argument("-a", "--alerts", help="List all alerts in a file",\
+                                            action="store_true")
+        self.parser.add_argument("-r", "--recom", help="List security recommendations in an output file.",\
+                                            action="store_true")
+        self.parser.add_argument("output", type=str, help="Specify the output file type")
+        self.args = self.parser.parse_args()
 
 class azure_defender:
     def __init__(self):
@@ -35,47 +52,41 @@ class azure_defender:
         if os.path.isdir("Subscriptions") == False:
             os.mkdir("Subscriptions")
         
-        subprocess.check_output([f'az account list --output tsv > Subscriptions/subscriptions_{self.date}.csv'], shell=True)
+        subprocess.check_output([f'az account list --output {main_parser().args.output} > Subscriptions/subscriptions_{self.date}.{main_parser().args.output}'], shell=True)
         print(f"{bcolors.OKGREEN}\nOK: Wrote subs to file.\n")
 
     def list_alerts(self):
         if os.path.isdir("Alerts") == False:
             os.mkdir("Alerts")
 
-        subprocess.check_output([f'az security alert list --output json > Alerts/alerts_{self.date}.json'], shell=True)
+        subprocess.check_output([f'az security alert list --output {main_parser().args.output} > Alerts/alerts_{self.date}.{main_parser().args.output}'], shell=True)
         print(f"{bcolors.OKGREEN}\nOK: Listed the security alerts to file.\n")
 
     def list_recommendations(self):
         if os.path.isdir("Recommendations") == False:
             os.mkdir("Recommendations")
 
-        subprocess.check_output([f"az security assessment list --output json > Recommendations/recommendations_{self.date}.json"], shell=True)
-        print(f"{bcolors.OKCYAN}\nOK: Listed the security recommendations on each subscription.\n")
+        try:
+            subprocess.check_output([f"az security assessment list --output {main_parser().args.output} > Recommendations/recommendations_{self.date}.{main_parser().args.output}"], shell=True)
+            print(f"{bcolors.OKCYAN}\nOK: Listed the security recommendations on each subscription.\n")
+        except subprocess.CalledProcessError:
+            print(f"{bcolors.FAIL}{bcolors.BOLD}Invalid output format")
+        
 
 def main():
     execute = azure_defender()
+    argparser = main_parser()
     # Arguments for usage and options
-    parser = argparse.ArgumentParser(description="Azure CLI Helper", add_help=True)
-    parser.add_argument("-l", "--login", help="Login into a Microsoft Azure Account",\
-                                        action="store_true")
-    parser.add_argument("-s", "--subs", help="List the subscriptions of the Azure Account in a json file",\
-                                        action="store_true")
-    parser.add_argument("-a", "--alerts", help="List all alerts in a file",\
-                                        action="store_true")
-    parser.add_argument("-r", "--recom", help="List security recommendations in an output file.",\
-                                        action="store_true")
-    args = parser.parse_args()
-
-    if args.login:
+    if argparser.args.login:
         execute.login()
 
-    if args.subs:
+    if argparser.args.subs:
         execute.list_subs()
 
-    if args.alerts:
+    if argparser.args.alerts:
         execute.list_alerts()
     
-    if args.recom:
+    if argparser.args.recom:
         execute.list_recommendations()
 
     # execute = azure_defender()
