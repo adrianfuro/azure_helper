@@ -4,12 +4,12 @@ Tool created by Furo Adrian-Gheorghe
                 Tamasila Yasmina-Claudia
 """
 
+from ast import arg
 import sys, os
 from datetime import datetime
 from azure.cli.core import get_default_cli
 import subprocess
 import argparse
-# import pandas as pd
 
 class bcolors:
     HEADER = '\033[95m'
@@ -39,7 +39,6 @@ class main_parser:
         self.parser.add_argument("-c", "--checkazure", help="Check if azure is existent, if not install it.",\
                                             action="store_true")
         self.parser.add_argument("output", nargs="?", type=str, default="json", help="Specify the output file type [json] [tsv] [table] [yaml]")
-        #self.parser.add_argument("-v", "--verbose", nargs="?", type=str, help="Show the output in terminal")
         self.args = self.parser.parse_args()
 
 class azure_defender:
@@ -131,6 +130,9 @@ def main():
     execute = azure_defender()
     argparser = main_parser()
     # Arguments for usage and options
+    if len(sys.argv) < 2:
+        argparser.parser.print_help()
+
     if argparser.args.login:
         execute.login()
 
