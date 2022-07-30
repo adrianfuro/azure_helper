@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 """
-Tool created by Furo Adrian-Gheorghe
-                Tamasila Yasmina-Claudia
+Tool created by crypt0sploit
 """
 
 from ast import arg
